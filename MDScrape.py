@@ -1,5 +1,12 @@
 import requests, bs4
 
+print ("  _  __  _  _     ____  ")
+print (" | |/ / | || |   |___ \ ")
+print (" | ' /  | || |_    __) |")
+print (" | . \  |__   _|  / __/ ")
+print (" |_|\_\    |_|   |_____|")
+print ("")
+
 url = requests.get('https://www.kickstarter.com/projects/coolminiornot/massive-darkness')
 soup = bs4.BeautifulSoup(url.text, "html.parser")
 cheese = soup.select('span.pledge__backer-count')
