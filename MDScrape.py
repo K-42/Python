@@ -1,6 +1,6 @@
 #! python3
 
-import requests, bs4, datetime, time
+import requests, bs4, datetime, time, shelve
 
 print ("  _  __  _  _     ____  ")
 print (" | |/ / | || |   |___ \ ")
@@ -28,11 +28,13 @@ while True:
         time.sleep(int(interval))
     else:
         print("An early backer slot for Massive Darkness is available so I've sent you a text - act fast!")
+        data = shelve.open('local.properties')
         from twilio.rest import TwilioRestClient
-        accountSID = ''
-        authToken = ''
+        accountSID = data['accountSID']
+        authToken = data['authToken']
         twilioCli = TwilioRestClient(accountSID, authToken)
-        myTwilioNumber = ''
-        targetNumber = ''
+        myTwilioNumber = data['myTwilioNumber']
+        targetNumber = data['targetNumber']
         message = twilioCli.messages.create(body='Ben: an early backer has pulled out of Massive Darkness!', from_=myTwilioNumber, to=targetNumber)
+        data.close()
         break
