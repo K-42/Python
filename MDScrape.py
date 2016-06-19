@@ -1,6 +1,6 @@
 #! python3
 
-import requests, bs4, datetime, time, shelve
+import requests, bs4, datetime, time
 
 #set default interval time between checks
 DEFAULT_INTERVAL = 300
@@ -32,13 +32,11 @@ while True:
         time.sleep(int(interval))
     else:
         print("An early backer slot for Massive Darkness is available so I've sent you a text - act fast!")
-        data = shelve.open('local.properties')
         from twilio.rest import TwilioRestClient
-        accountSID = data['accountSID']
-        authToken = data['authToken']
+        accountSID = ''
+        authToken = ''
         twilioCli = TwilioRestClient(accountSID, authToken)
-        myTwilioNumber = data['myTwilioNumber']
-        targetNumber = data['targetNumber']
+        myTwilioNumber = ''
+        targetNumber = ''
         message = twilioCli.messages.create(body='Ben: an early backer has pulled out of Massive Darkness!', from_=myTwilioNumber, to=targetNumber)
-        data.close()
         break
