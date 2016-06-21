@@ -29,10 +29,19 @@ print('Hello! This script checks whether any early backers have pulled out of th
 print("It'll run once every " + str(DEFAULT_INTERVAL) + " seconds. You can set a new interval value below or press enter to accept the default:")
 
 #user can overwrite the default interval time if they desire
-interval = input() 
-interval = DEFAULT_INTERVAL if interval == '' else interval
 
-print('OK!', end=' \n\n')   
+while True:
+  interval = input()
+  if interval !='':
+    try:
+      interval = int(interval)
+      print('OK! ' + str(interval) + ' seconds is the new interval.', end=' \n\n')
+      break
+    except ValueError:
+      print('What was that? Try a number.')
+  else:
+    interval = DEFAULT_INTERVAL
+    break
 
 print('Checking every ' +str(interval) + ' seconds. Current status:')
 while True:
