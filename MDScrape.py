@@ -45,6 +45,7 @@ while True:
 
 print('Checking every ' +str(interval) + ' seconds. Current status:')
 while True:
+    url = requests.get('https://www.kickstarter.com/projects/coolminiornot/massive-darkness')
     if backers[0].getText() == '1,820 backers':
         print("I checked Massive Darkness at " + (str(datetime.datetime.now().time()))[:5]+ ". The slots for early backers were full.")
         time.sleep(int(interval))
