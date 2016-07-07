@@ -9,16 +9,12 @@ print (" | ' /  | || |_    __) |")
 print (" | . \  |__   _|  / __/ ")
 print (" |_|\_\    |_|   |_____|", end="\n\n")
 
-config = configparser.RawConfigParser()
-
-#read script configuration file, read local configuration file
-config.read('common.properties', 'local.properties')
-
 i=0
 while i < 21:
     print ('Kickscraper launched!'[i], end='')
     i += 1
-    time.sleep(0.01)
+    sys.stdout.flush()
+    time.sleep(0.015)
 
 print('\n')
   
@@ -70,7 +66,7 @@ def menu():
             else:
                 raise ValueError
 
-#define and project name / URL to dictionary, save to JSON
+#define and add project name / URL to dictionary, save to JSON
 def newproject():
     urlcheck = re.compile(r'https://www.kickstarter.com/projects/\w*')
     while True:
@@ -128,27 +124,38 @@ def delproject():
                     except ValueError:
                         print('Please enter [1] or [2].')
             
+config = configparser.RawConfigParser()
+
+#read local Twilio variables
+config.read('local.properties')
+
 #set default interval time between checks
-DEFAULT_INTERVAL = 10
+DEFAULT_INTERVAL = 60
 
 #checks config file exists and either imports user definition or uses default interval
-if os.path.exists('./config'):
+if os.path.exists('./config.ini'):
+    config.read('config.ini')
     interval = config.get('application', 'interval')
 else:
-    interval = DEFAULT_INTERVAL
-
-#user can overwrite the default interval
+    interval = DEFAULT_INTERVAL #create file
+    
+#user can modify the interval
 def setinterval():
     while True:
         print('Set number of seconds between each check:') 
         global interval
         interval = input()
         try:
-            interval = int(interval)
-            print('OK! ' + str(interval) + ' seconds is the new interval.', end=' \n\n')
-            return
+            interval = int(interval) 
         except ValueError:
             print('What was that? Try a number.')
+        config = configparser.RawConfigParser()
+        config['application']={}
+        config['application']['interval'] = str(interval)
+        with open('config.ini', 'w') as file:
+            config.write(file)            
+        print('OK! ' + str(interval) + ' seconds is the new interval.', end=' \n\n')
+        return
 
 def quit_thread():
     while True:
@@ -186,7 +193,7 @@ def tracking_loop():
                 twilioCli = TwilioRestClient(accountSID, authToken)
                 myTwilioNumber = config.get('twilio', 'phoneNumber')
                 targetNumber = config.get('user', 'phoneNumber')
-                message = twilioCli.messages.create(body=config.get('user', 'name') + ': an early backer has pulled out of ' + projectname + '!', from_=myTwilioNumber, to=targetNumber)
+                message = twilioCli.messages.create(body=config.get('user', 'name') + ': an early backer has pulled out of ' + projects + '!', from_=myTwilioNumber, to=targetNumber)
                 return
 
 while True:
