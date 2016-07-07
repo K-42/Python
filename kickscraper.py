@@ -9,16 +9,12 @@ print (" | ' /  | || |_    __) |")
 print (" | . \  |__   _|  / __/ ")
 print (" |_|\_\    |_|   |_____|", end="\n\n")
 
-config = configparser.RawConfigParser()
-
-#read script configuration file, read local configuration file
-config.read('common.properties', 'local.properties')
-
 i=0
 while i < 21:
     print ('Kickscraper launched!'[i], end='')
     i += 1
-    time.sleep(0.01)
+    sys.stdout.flush()
+    time.sleep(0.015)
 
 print('\n')
   
@@ -30,7 +26,7 @@ else:
     projectdict = {}
 
 #main menu
-def menu():
+def menu(): #sort out value errors here
     while True:
         if projectdict=={}:
             print ('\t[1] Add Project')
@@ -39,12 +35,13 @@ def menu():
                 menuopt = int(input())
                 if menuopt ==1:
                     newproject()
+                    continue #I think?
                 else:
                     print('Bye bye!')
-                    time.sleep(1)
+                    time.sleep(2)
                     sys.exit()
             except ValueError:
-                print('Please enter a number.')
+                print('menu no thanks.')
         else:
             print('\t[1] Track Projects')
             print('\t[2] Add Project')  
@@ -54,7 +51,7 @@ def menu():
             try:            
                 menuopt = int(input())
             except ValueError:
-                print('Please enter a number.')
+                print('No thanks.')
             if menuopt ==1:
                 tracking_loop()
             elif menuopt ==2:
@@ -128,27 +125,38 @@ def delproject():
                     except ValueError:
                         print('Please enter [1] or [2].')
             
+config = configparser.RawConfigParser()
+
+#read local Twilio variables
+config.read('local.properties')
+
 #set default interval time between checks
-DEFAULT_INTERVAL = 10
+DEFAULT_INTERVAL = 60
 
 #checks config file exists and either imports user definition or uses default interval
-if os.path.exists('./config'):
+if os.path.exists('./config.ini'):
+    config.read('config.ini')
     interval = config.get('application', 'interval')
 else:
-    interval = DEFAULT_INTERVAL
-
-#user can overwrite the default interval
+    interval = DEFAULT_INTERVAL #create file
+    
+#user can modify the interval
 def setinterval():
     while True:
         print('Set number of seconds between each check:') 
         global interval
         interval = input()
         try:
-            interval = int(interval)
-            print('OK! ' + str(interval) + ' seconds is the new interval.', end=' \n\n')
-            return
+            interval = int(interval) 
         except ValueError:
             print('What was that? Try a number.')
+        config = configparser.RawConfigParser()
+        config['application']={}
+        config['application']['interval'] = str(interval)
+        with open('config.ini', 'w') as file:
+            config.write(file)            
+        print('OK! ' + str(interval) + ' seconds is the new interval.', end=' \n\n')
+        return
 
 def quit_thread():
     while True:
@@ -171,11 +179,11 @@ def tracking_loop():
             pagescrape = requests.get(url)
             pageparse = bs4.BeautifulSoup(pagescrape.text, "html.parser")
             backers = pageparse.select('span.pledge__backer-count')
-            if backers[0].getText() == '1,820 backers':
+            if backers[0].getText() == '1,820 backers': #todo: make backer count dynamic
                 print("I checked " + projects + " at " + (str(datetime.datetime.now().time()))[:5]+ ". The slots for early backers were full.")
                 for t in range (60):
                     if loopswitch == 'on':
-                        time.sleep(interval/len(projectdict)/60) #reduces loop completion time before return to menu. todo: make '60' dynamic so the user never waits more than 1 second even if they set a long interval.
+                        time.sleep(interval/len(projectdict)/60) #reduces loop completion time before return to menu. todo: make '60' dynamic so the user never waits more than 1 second if they set a long interval.
                     else:
                         return                 
             else:
@@ -186,16 +194,16 @@ def tracking_loop():
                 twilioCli = TwilioRestClient(accountSID, authToken)
                 myTwilioNumber = config.get('twilio', 'phoneNumber')
                 targetNumber = config.get('user', 'phoneNumber')
-                message = twilioCli.messages.create(body=config.get('user', 'name') + ': an early backer has pulled out of ' + projectname + '!', from_=myTwilioNumber, to=targetNumber)
+                message = twilioCli.messages.create(body=config.get('user', 'name') + ': an early backer has pulled out of ' + projects + '!', from_=myTwilioNumber, to=targetNumber)
                 return
 
 while True:
     menu()
 
 #todo
-#add twilio exception (e.g. no twilio detected, on screen prompt only)
+#add twilio exception (e.g. no twilio detected, online prompt only)
 #store new interval in config file
 #make different pledges available and add these to project name e.g. Massive Darkness - Lightbringer Pledge
 #make backers dynamic
-#delete notified projects from dictionary and keep checking remainder
+#delete notified projects from dictionary and keep checking others
 
